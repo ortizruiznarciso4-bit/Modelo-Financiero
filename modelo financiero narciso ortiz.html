@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo Financiero - ENERGESTIÓN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #eef2f3;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .excel-container {
+            background: white;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .excel-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .excel-header h1 {
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .excel-tabs {
+            background: #f1f1f1;
+            padding: 5px 5px 0 5px;
+            display: flex;
+            border-bottom: 2px solid #11998e;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            cursor: pointer;
+            margin-right: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #555;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #11998e;
+            border-top: 3px solid #11998e;
+            transform: translateY(1px);
+        }
+        
+        .tab:hover {
+            background: #fff;
+        }
+        
+        .excel-content {
+            padding: 30px;
+            background: white;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 30px;
+            min-width: 800px;
+        }
+        
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 10px;
+            text-align: left;
+            border: 1px solid #34495e;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border: 1px solid #dfe6e9;
+            text-align: right;
+        }
+        
+        td.label {
+            text-align: left;
+            font-weight: 600;
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+        
+        tr:nth-child(even) {
+            background: #fbfbfb;
+        }
+        
+        .number {
+            font-family: 'Consolas', monospace;
+            text-align: right;
+            color: #2d3436;
+        }
+        
+        .total-row {
+            background: #fff3cd !important;
+            font-weight: bold;
+            border-top: 2px solid #ffc107;
+        }
+        
+        .subtotal-row {
+            background: #d1f2eb !important;
+            font-weight: bold;
+        }
+        
+        .section-title {
+            background: #11998e;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+            font-size: 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: "📊";
+            margin-right: 10px;
+        }
+        
+        .negative { color: #e74c3c; font-weight: bold; }
+        .positive { color: #27ae60; font-weight: bold; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .info-box {
+            background: #e8f8f5;
+            border-left: 5px solid #11998e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+            font-size: 0.95em;
+        }
+        
+        .currency::before { content: "$ "; float: left; color: #999; font-size: 0.8em; margin-top: 2px; }
+        
+        .highlight { background: #ffeaa7 !important; }
+        
+        .excel-footer {
+            background: #f1f1f1;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #ccc;
+        }
+        
+        /* Grid para Flujo de Caja para pantallas grandes */
+        .month-grid {
+            display: grid;
+            grid-template-columns: 200px repeat(12, 1fr) 100px;
+            gap: 1px;
+            background: #ccc;
+            border: 1px solid #ccc;
+            overflow-x: auto;
+        }
+        
+        .month-cell {
+            padding: 8px 4px;
+            text-align: center;
+            background: #2c3e50;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .month-value {
+            padding: 6px 4px;
+            text-align: right;
+            background: white;
+            font-size: 11px;
+            font-family: 'Consolas', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .month-label {
+            background: #f8f9fa;
+            text-align: left;
+            font-weight: bold;
+            padding-left: 8px;
+            justify-content: flex-start;
+        }
+
+        @media (max-width: 1024px) {
+            .month-grid {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .month-grid > div {
+                display: inline-block;
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="excel-container">
+        <div class="excel-header">
+            <h1>⚡ ENERGESTIÓN - MODELO FINANCIERO</h1>
+            <p><strong>Responsable:</strong> Narciso Ortiz Ruiz | <strong>Fecha:</strong> 24/11/2025</p>
+            <p>Tecnología en Gestión Eficiente de la Energía</p>
+        </div>
+        
+        <div class="excel-tabs">
+            <div class="tab active" onclick="showTab('ventas')">1. VENTAS</div>
+            <div class="tab" onclick="showTab('personal')">2. NÓMINA</div>
+            <div class="tab" onclick="showTab('activos')">3. ACTIVOS</div>
+            <div class="tab" onclick="showTab('capital')">4. INVERSIÓN</div>
+            <div class="tab" onclick="showTab('flujo')">5. FLUJO CAJA</div>
+            <div class="tab" onclick="showTab('balance')">6. BALANCE</div>
+            <div class="tab" onclick="showTab('indicadores')">7. KPI's</div>
+        </div>
+        
+        <div class="excel-content">
+            <div id="ventas" class="tab-content active">
+                <div class="section-title">1. PRESUPUESTO DE VENTAS E INGRESOS - AÑO 1</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">PRODUCTO / SERVICIO</th>
+                            <th>PRECIO UNITARIO</th>
+                            <th>CANTIDAD MES (Prom)</th>
+                            <th>VENTA MENSUAL</th>
+                            <th>VENTA ANUAL</th>
+                            <th>COSTO DIRECTO (Variable)</th>
+                            <th>MARGEN BRUTO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">Kit IoT Medición Industrial</td>
+                            <td class="currency">4,500,000</td>
+                            <td class="number">6</td>
+                            <td class="currency">27,000,000</td>
+                            <td class="currency">324,000,000</td>
+                            <td class="currency">16,200,000</td>
+                            <td class="number">40%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Suscripción Plataforma SaaS</td>
+                            <td class="currency">450,000</td>
+                            <td class="number">45</td>
+                            <td class="currency">20,250,000</td>
+                            <td class="currency">243,000,000</td>
+                            <td class="currency">2,025,000</td>
+                            <td class="number">90%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Auditoría Energética (RETIE)</td>
+                            <td class="currency">7,200,000</td>
+                            <td class="number">2</td>
+                            <td class="currency">14,400,000</td>
+                            <td class="currency">172,800,000</td>
+                            <td class="currency">2,880,000</td>
+                            <td class="number">80%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Mantenimiento Correctivo</td>
+                            <td class="currency">1,500,000</td>
+                            <td class="number">5</td>
+                            <td class="currency">7,500,000</td>
+                            <td class="currency">90,000,000</td>
+                            <td class="currency">2,250,000</td>
+                            <td class="number">70%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Consultoría en Eficiencia</td>
+                            <td class="currency">3,500,000</td>
+                            <td class="number">3</td>
+                            <td class="currency">10,500,000</td>
+                            <td class="currency">126,000,000</td>
+                            <td class="currency">525,000</td>
+                            <td class="number">95%</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="label">TOTALES PROMEDIO</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class="currency highlight">79,650,000</td>
+                            <td class="currency highlight">955,800,000</td>
+                            <td class="currency">23,880,000</td>
+                            <td class="number">70.1%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="info-box">
+                    <strong>Nota Metodológica:</strong> El costo directo incluye hardware de sensores, licencias de terceros por uso, y viáticos directos. La mano de obra se calcula en el módulo de Nómina (Costos Fijos).
+                </div>
+            </div>
+            
+            <div id="personal" class="tab-content">
+                <div class="section-title">2. ESTRUCTURA DE NÓMINA Y CARGAS (Mes)</div>
+                <p style="margin-bottom:15px; font-size:12px;">Factor prestacional calculado: 1.52 (Incluye Salud, Pensión, ARL, Parafiscales, Primas, Cesantías, Vacaciones).</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">CARGO</th>
+                            <th>CANTIDAD</th>
+                            <th>SALARIO BASE</th>
+                            <th>AUX. TRANSPORTE</th>
+                            <th>CARGA PRESTACIONAL (52%)</th>
+                            <th>COSTO TOTAL EMPRESA</th>
+                            <th>COSTO ANUAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">Gerente General (Ingeniero)</td>
+                            <td class="number">1</td>
+                            <td class="currency">5,500,000</td>
+                            <td class="currency">0</td>
+                            <td class="currency">2,860,000</td>
+                            <td class="currency">8,360,000</td>
+                            <td class="currency">100,320,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Ingeniero Eléctrico Senior</td>
+                            <td class="number">1</td>
+                            <td class="currency">4,500,000</td>
+                            <td class="currency">0</td>
+                            <td class="currency">2,340,000</td>
+                            <td class="currency">6,840,000</td>
+                            <td class="currency">82,080,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Científico de Datos / IoT</td>
+                            <td class="number">1</td>
+                            <td class="currency">4,800,000</td>
+                            <td class="currency">0</td>
+                            <td class="currency">2,496,000</td>
+                            <td class="currency">7,296,000</td>
+                            <td class="currency">87,552,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Técnico Instalador RETIE</td>
+                            <td class="number">2</td>
+                            <td class="currency">1,800,000</td>
+                            <td class="currency">162,000</td>
+                            <td class="currency">1,020,240</td>
+                            <td class="currency">5,964,480</td>
+                            <td class="currency">71,573,760</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Asesor Comercial B2B</td>
+                            <td class="number">1</td>
+                            <td class="currency">2,000,000</td>
+                            <td class="currency">162,000</td>
+                            <td class="currency">1,124,240</td>
+                            <td class="currency">3,286,240</td>
+                            <td class="currency">39,434,880</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Auxiliar Administrativo</td>
+                            <td class="number">1</td>
+                            <td class="currency">1,300,000</td>
+                            <td class="currency">162,000</td>
+                            <td class="currency">760,240</td>
+                            <td class="currency">2,222,240</td>
+                            <td class="currency">26,666,880</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="label">TOTAL NÓMINA MENSUAL</td>
+                            <td class="number">7</td>
+                            <td class="currency">21,700,000</td>
+                            <td class="currency">648,000</td>
+                            <td class="currency">11,620,960</td>
+                            <td class="currency highlight">33,968,960</td>
+                            <td class="currency highlight">407,627,520</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="activos" class="tab-content">
+                <div class="section-title">3. ACTIVOS FIJOS Y EQUIPAMIENTO</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">ACTIVO</th>
+                            <th>CANTIDAD</th>
+                            <th>VALOR UNITARIO</th>
+                            <th>VALOR TOTAL</th>
+                            <th>DEPRECIACIÓN ANUAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="subtotal-row"><td colspan="5" class="label">EQUIPOS TÉCNICOS ESPECIALIZADOS</td></tr>
+                        <tr>
+                            <td class="label">Analizador de Redes Eléctricas (Clase A)</td>
+                            <td class="number">2</td>
+                            <td class="currency">12,000,000</td>
+                            <td class="currency">24,000,000</td>
+                            <td class="currency">4,800,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Cámara Termográfica Industrial</td>
+                            <td class="number">1</td>
+                            <td class="currency">8,500,000</td>
+                            <td class="currency">8,500,000</td>
+                            <td class="currency">1,700,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Kit Herramientas (Pinzas, Multímetros, EPP)</td>
+                            <td class="number">3</td>
+                            <td class="currency">2,500,000</td>
+                            <td class="currency">7,500,000</td>
+                            <td class="currency">1,500,000</td>
+                        </tr>
+                        
+                        <tr class="subtotal-row"><td colspan="5" class="label">TECNOLOGÍA Y OFICINA</td></tr>
+                        <tr>
+                            <td class="label">Servidor Local + UPS Industrial</td>
+                            <td class="number">1</td>
+                            <td class="currency">15,000,000</td>
+                            <td class="currency">15,000,000</td>
+                            <td class="currency">3,000,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Laptops Ingenieros (Alto Rendimiento)</td>
+                            <td class="number">4</td>
+                            <td class="currency">4,200,000</td>
+                            <td class="currency">16,800,000</td>
+                            <td class="currency">5,600,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Computadores Administrativos</td>
+                            <td class="number">2</td>
+                            <td class="currency">2,500,000</td>
+                            <td class="currency">5,000,000</td>
+                            <td class="currency">1,666,667</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Mobiliario de Oficina</td>
+                            <td class="number">1</td>
+                            <td class="currency">8,000,000</td>
+                            <td class="currency">8,000,000</td>
+                            <td class="currency">800,000</td>
+                        </tr>
+                        
+                        <tr class="total-row">
+                            <td class="label">TOTAL ACTIVOS FIJOS</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td class="currency highlight">84,800,000</td>
+                            <td class="currency">19,066,667</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="capital" class="tab-content">
+                <div class="section-title">4. REQUERIMIENTOS DE CAPITAL</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CONCEPTO</th>
+                            <th>MONTO</th>
+                            <th>% DEL TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">Activos Fijos (Maquinaria y Equipo)</td>
+                            <td class="currency">84,800,000</td>
+                            <td class="number">42.4%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Capital de Trabajo (3 meses de Nómina + Op)</td>
+                            <td class="currency">105,200,000</td>
+                            <td class="number">52.6%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Gastos de Constitución y Legalización</td>
+                            <td class="currency">5,000,000</td>
+                            <td class="number">2.5%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Marketing de Lanzamiento</td>
+                            <td class="currency">5,000,000</td>
+                            <td class="number">2.5%</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="label">TOTAL INVERSIÓN INICIAL</td>
+                            <td class="currency highlight">200,000,000</td>
+                            <td class="number">100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="margin: 20px 0 10px 0; color: #2c3e50;">FUENTES DE FINANCIACIÓN</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FUENTE</th>
+                            <th>MONTO</th>
+                            <th>PARTICIPACIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">Recursos Propios (Narciso Ortiz)</td>
+                            <td class="currency">80,000,000</td>
+                            <td class="number">40%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Préstamo Bancario (Tasa 18% EA)</td>
+                            <td class="currency">60,000,000</td>
+                            <td class="number">30%</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Inversionista Privado / Fondo Emprender</td>
+                            <td class="currency">60,000,000</td>
+                            <td class="number">30%</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="label">TOTAL</td>
+                            <td class="currency highlight">200,000,000</td>
+                            <td class="number">100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="flujo" class="tab-content">
+                <div class="section-title">5. FLUJO DE CAJA PROYECTADO (AÑO 1)</div>
+                <p style="font-size: 11px; margin-bottom: 10px;">Valores en Millones de Pesos (COP). Se asume crecimiento mensual del 2% en ventas.</p>
+                
+                <div class="month-grid" style="grid-template-columns: 180px repeat(12, 1fr) 100px;">
+                    <div class="month-cell">CONCEPTO</div>
+                    <div class="month-cell">Ene</div><div class="month-cell">Feb</div><div class="month-cell">Mar</div>
+                    <div class="month-cell">Abr</div><div class="month-cell">May</div><div class="month-cell">Jun</div>
+                    <div class="month-cell">Jul</div><div class="month-cell">Ago</div><div class="month-cell">Sep</div>
+                    <div class="month-cell">Oct</div><div class="month-cell">Nov</div><div class="month-cell">Dic</div>
+                    <div class="month-cell" style="background:#f1c40f; color:black;">TOTAL</div>
+
+                    <div class="month-label" style="grid-column: 1 / -1; background: #d1f2eb;">INGRESOS OPERATIVOS</div>
+                    
+                    <div class="month-label">Ventas Totales</div>
+                    <div class="month-value">65.0</div><div class="month-value">66.3</div><div class="month-value">67.6</div>
+                    <div class="month-value">69.0</div><div class="month-value">70.4</div><div class="month-value">71.8</div>
+                    <div class="month-value">73.2</div><div class="month-value">74.7</div><div class="month-value">76.2</div>
+                    <div class="month-value">77.7</div><div class="month-value">79.2</div><div class="month-value">80.8</div>
+                    <div class="month-value" style="font-weight:bold;">871.9</div>
+
+                    <div class="month-label" style="grid-column: 1 / -1; background: #fadbd8;">EGRESOS OPERATIVOS</div>
+
+                    <div class="month-label">Costos Variables (30%)</div>
+                    <div class="month-value">19.5</div><div class="month-value">19.9</div><div class="month-value">20.3</div>
+                    <div class="month-value">20.7</div><div class="month-value">21.1</div><div class="month-value">21.5</div>
+                    <div class="month-value">22.0</div><div class="month-value">22.4</div><div class="month-value">22.9</div>
+                    <div class="month-value">23.3</div><div class="month-value">23.8</div><div class="month-value">24.2</div>
+                    <div class="month-value">261.6</div>
+
+                    <div class="month-label">Nómina Fija</div>
+                    <div class="month-value">34.0</div><div class="month-value">34.0</div><div class="month-value">34.0</div>
+                    <div class="month-value">34.0</div><div class="month-value">34.0</div><div class="month-value">34.0</div>
+                    <div class="month-value">34.0</div><div class="month-value">34.0</div><div class="month-value">34.0</div>
+                    <div class="month-value">34.0</div><div class="month-value">34.0</div><div class="month-value">34.0</div>
+                    <div class="month-value">408.0</div>
+
+                    <div class="month-label">Arriendo y Servicios</div>
+                    <div class="month-value">5.5</div><div class="month-value">5.5</div><div class="month-value">5.5</div>
+                    <div class="month-value">5.5</div><div class="month-value">5.5</div><div class="month-value">5.5</div>
+                    <div class="month-value">5.5</div><div class="month-value">5.5</div><div class="month-value">5.5</div>
+                    <div class="month-value">5.5</div><div class="month-value">5.5</div><div class="month-value">5.5</div>
+                    <div class="month-value">66.0</div>
+                    
+                    <div class="month-label">Marketing y Otros</div>
+                    <div class="month-value">3.0</div><div class="month-value">3.0</div><div class="month-value">3.0</div>
+                    <div class="month-value">3.0</div><div class="month-value">3.0</div><div class="month-value">3.0</div>
+                    <div class="month-value">3.0</div><div class="month-value">3.0</div><div class="month-value">3.0</div>
+                    <div class="month-value">3.0</div><div class="month-value">3.0</div><div class="month-value">3.0</div>
+                    <div class="month-value">36.0</div>
+
+                    <div class="month-label" style="font-weight: bold; background:#e0e0e0;">TOTAL EGRESOS</div>
+                    <div class="month-value" style="font-weight: bold;">62.0</div><div class="month-value">62.4</div><div class="month-value">62.8</div>
+                    <div class="month-value">63.2</div><div class="month-value">63.6</div><div class="month-value">64.0</div>
+                    <div class="month-value">64.5</div><div class="month-value">64.9</div><div class="month-value">65.4</div>
+                    <div class="month-value">65.8</div><div class="month-value">66.3</div><div class="month-value">66.7</div>
+                    <div class="month-value">771.6</div>
+
+                    <div class="month-label" style="grid-column: 1 / -1; background: #f9e79f;">RESULTADO</div>
+
+                    <div class="month-label">Flujo Neto Mensual</div>
+                    <div class="month-value positive">3.0</div><div class="month-value positive">3.9</div><div class="month-value positive">4.8</div>
+                    <div class="month-value positive">5.8</div><div class="month-value positive">6.8</div><div class="month-value positive">7.8</div>
+                    <div class="month-value positive">8.7</div><div class="month-value positive">9.8</div><div class="month-value positive">10.8</div>
+                    <div class="month-value positive">11.9</div><div class="month-value positive">12.9</div><div class="month-value positive">14.1</div>
+                    <div class="month-value" style="font-weight:bold; background:#27ae60; color:white;">100.3</div>
+                    
+                    <div class="month-label">Flujo Acumulado</div>
+                    <div class="month-value">3.0</div><div class="month-value">6.9</div><div class="month-value">11.7</div>
+                    <div class="month-value">17.5</div><div class="month-value">24.3</div><div class="month-value">32.1</div>
+                    <div class="month-value">40.8</div><div class="month-value">50.6</div><div class="month-value">61.4</div>
+                    <div class="month-value">73.3</div><div class="month-value">86.2</div><div class="month-value">100.3</div>
+                    <div class="month-value">-</div>
+                </div>
+            </div>
+            
+            <div id="balance" class="tab-content">
+                <div class="section-title">6. BALANCE GENERAL INICIAL</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">ACTIVO</th>
+                            <th>VALOR</th>
+                            <th style="width: 40%;">PASIVO Y PATRIMONIO</th>
+                            <th>VALOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">Efectivo / Bancos</td>
+                            <td class="currency">115,200,000</td>
+                            <td class="label">Obligaciones Financieras (Largo Plazo)</td>
+                            <td class="currency">60,000,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Inventarios Iniciales</td>
+                            <td class="currency">0</td>
+                            <td class="label">Cuentas por Pagar</td>
+                            <td class="currency">0</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Activos Fijos (Equipos)</td>
+                            <td class="currency">84,800,000</td>
+                            <td class="label highlight" style="font-weight:bold;">TOTAL PASIVOS</td>
+                            <td class="currency highlight">60,000,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label"></td>
+                            <td class="currency"></td>
+                            <td class="label">Capital Social (Aportes)</td>
+                            <td class="currency">140,000,000</td>
+                        </tr>
+                        <tr>
+                            <td class="label"></td>
+                            <td class="currency"></td>
+                            <td class="label highlight" style="font-weight:bold;">TOTAL PATRIMONIO</td>
+                            <td class="currency highlight">140,000,000</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td class="label">TOTAL ACTIVOS</td>
+                            <td class="currency">200,000,000</td>
+                            <td class="label">TOTAL PASIVO + PATRIMONIO</td>
+                            <td class="currency">200,000,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="indicadores" class="tab-content">
+                <div class="section-title">7. INDICADORES DE VIABILIDAD (KPIs)</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>INDICADOR</th>
+                            <th>RESULTADO</th>
+                            <th>INTERPRETACIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label">EBITDA (Beneficio Operativo)</td>
+                            <td class="currency">100,300,000</td>
+                            <td class="positive">Positivo (Margen operativo saludable)</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Margen Neto (%)</td>
+                            <td class="number">11.5%</td>
+                            <td class="positive">Bueno para empresa de servicios/tecnología</td>
+                        </tr>
+                        <tr>
+                            <td class="label">ROI (Retorno sobre Inversión)</td>
+                            <td class="number">50.15%</td>
+                            <td class="positive">Recuperación de inversión en aprox. 2 años</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Punto de Equilibrio (Ventas/Mes)</td>
+                            <td class="currency">60,714,285</td>
+                            <td class="positive">Las ventas iniciales ($65M) cubren el PE</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Nivel de Endeudamiento</td>
+                            <td class="number">30%</td>
+                            <td class="positive">Bajo Riesgo Financiero</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box">
+                    <strong>Conclusión Financiera:</strong>
+                    El proyecto ENERGESTIÓN es financieramente viable. Inicia con flujo de caja positivo desde el primer mes gracias a un equilibrio entre costos fijos controlados y márgenes brutos altos en los servicios de consultoría y software. La capacidad de cubrir obligaciones financieras está garantizada con el flujo operacional.
+                </div>
+            </div>
+        </div>
+        
+        <div class="excel-footer">
+            <p><strong>ENERGESTIÓN S.A.S</strong> - Nit: 901.555.222-1</p>
+            <p>Modelo de Proyección Financiera - GA10-240201529-AA3-EV01</p>
+            <p>Elaborado por: Narciso Ortiz Ruiz | Barranquilla, Atlántico</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            var tabContents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            var tabs = document.getElementsByClassName('tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            var tabButtons = document.getElementsByClassName('tab');
+            for (var i = 0; i < tabButtons.length; i++) {
+                if (tabButtons[i].getAttribute('onclick').includes(tabName)) {
+                    tabButtons[i].classList.add('active');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
